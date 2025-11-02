@@ -11,37 +11,87 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   
   <style>
+    * { box-sizing: border-box; }
     body { 
       margin: 0; 
       font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
       min-height: 100vh;
     }
-    * { box-sizing: border-box; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    @media (max-width: 768px) {
+      .container { padding: 16px; }
+    }
     .card {
       background: white;
       border-radius: 16px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
       transition: all 0.2s ease;
+      overflow: hidden;
     }
     .card:hover {
       box-shadow: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.06);
       transform: translateY(-1px);
     }
-    .btn-primary {
-      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
-      color: white;
+    .btn {
       border: none;
-      padding: 12px 24px;
+      padding: 12px 20px;
       border-radius: 12px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
+      font-size: 15px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+      color: white;
       box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
     }
     .btn-primary:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+    }
+    .btn-secondary {
+      background: white;
+      color: #374151;
+      border: 2px solid #e5e7eb;
+    }
+    .btn-secondary:hover {
+      background: #f9fafb;
+      border-color: #d1d5db;
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+    }
+    .btn-success:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+    .btn-danger {
+      background: white;
+      color: #ef4444;
+      border: 2px solid #ef4444;
+    }
+    .btn-danger:hover {
+      background: #fef2f2;
+    }
+    .btn-icon {
+      padding: 10px;
+      border-radius: 10px;
     }
     .input-field {
       border: 2px solid #e5e7eb;
@@ -50,24 +100,108 @@
       transition: all 0.2s ease;
       font-size: 15px;
       width: 100%;
+      font-family: inherit;
+      background: white;
     }
     .input-field:focus {
       outline: none;
       border-color: #7c3aed;
       box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
     }
+    textarea.input-field {
+      min-height: 100px;
+      resize: vertical;
+    }
     .badge {
       display: inline-flex;
       align-items: center;
-      padding: 4px 12px;
+      padding: 6px 14px;
       border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 11px;
+      font-weight: 700;
       letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
-    button {
-      font-family: inherit;
-      cursor: pointer;
+    .badge-warning {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .badge-success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .header {
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      margin: 0 0 8px 0;
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: #7c3aed;
+    }
+    .header p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 16px;
+    }
+    @media (max-width: 768px) {
+      .header h1 { font-size: 2rem; }
+    }
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+    .flex {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .space-y-3 > * + * {
+      margin-top: 12px;
+    }
+    .space-y-6 > * + * {
+      margin-top: 24px;
+    }
+    .text-sm { font-size: 14px; }
+    .text-xs { font-size: 12px; }
+    .text-lg { font-size: 18px; }
+    .text-gray-500 { color: #6b7280; }
+    .text-gray-600 { color: #4b5563; }
+    .text-gray-700 { color: #374151; }
+    .text-gray-800 { color: #1f2937; }
+    .font-semibold { font-weight: 600; }
+    .font-bold { font-weight: 700; }
+    .p-4 { padding: 16px; }
+    .p-5 { padding: 20px; }
+    .p-6 { padding: 24px; }
+    .mb-3 { margin-bottom: 12px; }
+    .mb-4 { margin-bottom: 16px; }
+    .mb-6 { margin-bottom: 24px; }
+    .mb-8 { margin-bottom: 32px; }
+    .mt-2 { margin-top: 8px; }
+    .rounded-lg { border-radius: 12px; }
+    .fixed-bottom {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #e5e7eb;
+      padding: 16px;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+    }
+    @media (min-width: 768px) {
+      .fixed-bottom {
+        left: 50%;
+        transform: translateX(-50%);
+        max-width: 900px;
+        border-radius: 16px 16px 0 0;
+      }
     }
   </style>
 </head>
@@ -282,23 +416,23 @@
       };
 
       const HomeView = () => (
-        <div className="p-6 max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2" style={{color: '#7c3aed'}}>Field Intake</h1>
-            <p className="text-gray-600">Capture data beautifully, even offline</p>
+        <div className="container">
+          <div className="header">
+            <h1>Field Intake</h1>
+            <p>Capture data beautifully, even offline</p>
           </div>
           
           {currentIntake && !currentIntake.saved && (
             <div className="card mb-6" style={{background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', border: '2px solid #fbbf24'}}>
-              <div className="p-6 flex items-center justify-between">
+              <div className="p-6 flex-between">
                 <div>
-                  <p className="font-semibold text-amber-900 text-lg">📝 Draft in Progress</p>
-                  <p className="text-amber-700 mt-1">"{currentIntake.name || 'Unnamed'}"</p>
+                  <p className="font-semibold text-lg" style={{color: '#78350f'}}>📝 Draft in Progress</p>
+                  <p className="text-sm mt-2" style={{color: '#92400e'}}>"{currentIntake.name || 'Unnamed'}"</p>
                 </div>
                 <button 
                   onClick={() => setView('intake')}
-                  className="btn-primary"
-                  style={{background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'}}
+                  className="btn"
+                  style={{background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: 'white', boxShadow: '0 2px 8px rgba(245, 158, 11, 0.2)'}}
                 >
                   Resume
                 </button>
@@ -306,7 +440,7 @@
             </div>
           )}
 
-          <div className="grid gap-4 mb-8">
+          <div className="grid mb-8">
             <button
               onClick={() => {
                 if (templates.length === 0) {
@@ -316,8 +450,8 @@
                   startIntake(templates[0]);
                 }
               }}
-              className="card p-6 flex items-center justify-between text-lg font-semibold hover:scale-[1.02] transition-all"
-              style={{background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', color: 'white', cursor: 'pointer', border: 'none'}}
+              className="card btn text-lg font-semibold"
+              style={{background: 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)', color: 'white', padding: '24px', justifyContent: 'space-between', cursor: 'pointer', border: 'none', boxShadow: '0 2px 8px rgba(124, 58, 237, 0.2)'}}
             >
               <span>✨ Quick Start New Intake</span>
               <Plus size={24} />
@@ -325,17 +459,17 @@
 
             <button
               onClick={() => setView('templates')}
-              className="card p-5 flex items-center justify-between hover:scale-[1.01] transition-all"
-              style={{cursor: 'pointer', border: 'none'}}
+              className="card btn flex-between"
+              style={{cursor: 'pointer', border: 'none', padding: '20px', justifyContent: 'space-between'}}
             >
               <span className="font-semibold text-gray-700">📋 Manage Templates</span>
-              <Settings size={20} />
+              <Settings size={20} className="text-gray-600" />
             </button>
 
             <button
               onClick={exportToCSV}
-              className="card p-5 flex items-center justify-between hover:scale-[1.01] transition-all"
-              style={{background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', cursor: 'pointer', border: 'none'}}
+              className="card btn flex-between"
+              style={{background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', padding: '20px', cursor: 'pointer', border: 'none', boxShadow: '0 2px 8px rgba(16, 185, 129, 0.2)', justifyContent: 'space-between'}}
             >
               <span className="font-semibold">💾 Export All Intakes to CSV</span>
               <Download size={20} />
@@ -343,20 +477,20 @@
           </div>
 
           <div>
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Saved Intakes ({intakes.length})</h2>
+            <h2 style={{fontSize: '24px', fontWeight: '700', marginBottom: '16px', color: '#1f2937'}}>Saved Intakes ({intakes.length})</h2>
             {intakes.length === 0 ? (
-              <div className="card p-12 text-center">
-                <p className="text-gray-400 text-lg">No saved intakes yet</p>
-                <p className="text-gray-400 text-sm mt-2">Start your first intake above! 👆</p>
+              <div className="card p-6" style={{textAlign: 'center'}}>
+                <p className="text-lg" style={{color: '#9ca3af'}}>No saved intakes yet</p>
+                <p className="text-sm mt-2" style={{color: '#d1d5db'}}>Start your first intake above! 👆</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {intakes.map(intake => (
-                  <div key={intake.id} className="card p-5 flex items-center justify-between cursor-pointer" onClick={() => editIntake(intake)}>
-                    <div className="flex-1">
-                      <p className="font-semibold text-gray-800 text-lg">{intake.name}</p>
-                      <p className="text-sm text-gray-500 mt-1">{intake.templateName}</p>
-                      <p className="text-xs text-gray-400 mt-1">
+                  <div key={intake.id} className="card p-5 flex-between" style={{cursor: 'pointer'}} onClick={() => editIntake(intake)}>
+                    <div style={{flex: 1}}>
+                      <p className="font-semibold text-lg text-gray-800">{intake.name}</p>
+                      <p className="text-sm text-gray-500 mt-2">{intake.templateName}</p>
+                      <p className="text-xs text-gray-400 mt-2">
                         {new Date(intake.createdAt).toLocaleString()}
                         {intake.audioBlob && ' • 🎤 Has audio'}
                       </p>
@@ -366,7 +500,10 @@
                         e.stopPropagation();
                         deleteIntake(intake.id);
                       }}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                      className="btn-icon"
+                      style={{background: 'white', color: '#ef4444', border: '2px solid #fee2e2', borderRadius: '10px', padding: '8px', transition: 'all 0.2s'}}
+                      onMouseOver={(e) => e.currentTarget.style.background = '#fef2f2'}
+                      onMouseOut={(e) => e.currentTarget.style.background = 'white'}
                     >
                       <Trash2 size={18} />
                     </button>
@@ -379,40 +516,37 @@
       );
 
       const TemplatesView = () => (
-        <div className="p-6 max-w-4xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <button onClick={() => setView('home')} className="p-2 hover:bg-gray-100 rounded">
+        <div className="container">
+          <div className="flex-between mb-6">
+            <button onClick={() => setView('home')} className="btn btn-secondary btn-icon">
               <ArrowLeft size={24} />
             </button>
-            <h1 className="text-2xl font-bold">Templates</h1>
-            <button
-              onClick={createTemplate}
-              className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
+            <h1 style={{fontSize: '28px', fontWeight: '700', color: '#1f2937', margin: 0}}>Templates</h1>
+            <button onClick={createTemplate} className="btn btn-primary">
               <Plus size={20} />
+              New
             </button>
           </div>
 
           {templates.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">No templates yet</p>
-              <button
-                onClick={createTemplate}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
+            <div className="card p-6" style={{textAlign: 'center', marginTop: '48px'}}>
+              <p className="text-lg mb-4" style={{color: '#9ca3af'}}>No templates yet</p>
+              <button onClick={createTemplate} className="btn btn-primary">
+                <Plus size={20} />
                 Create First Template
               </button>
             </div>
           ) : (
             <div className="space-y-3">
               {templates.map(template => (
-                <div key={template.id} className="p-4 bg-white border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-lg">{template.name}</h3>
-                    <div className="flex gap-2">
+                <div key={template.id} className="card p-5">
+                  <div className="flex-between mb-3">
+                    <h3 className="font-semibold text-lg text-gray-800">{template.name}</h3>
+                    <div className="flex" style={{gap: '8px'}}>
                       <button
                         onClick={() => startIntake(template)}
-                        className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                        className="btn btn-primary"
+                        style={{fontSize: '14px', padding: '8px 16px'}}
                       >
                         Use
                       </button>
@@ -421,19 +555,22 @@
                           setCurrentTemplate(template);
                           setView('editTemplate');
                         }}
-                        className="p-2 hover:bg-gray-100 rounded"
+                        className="btn btn-secondary btn-icon"
                       >
                         <Edit2 size={18} />
                       </button>
                       <button
                         onClick={() => deleteTemplate(template.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded"
+                        className="btn-icon"
+                        style={{background: 'white', color: '#ef4444', border: '2px solid #fee2e2', borderRadius: '10px'}}
+                        onMouseOver={(e) => e.currentTarget.style.background = '#fef2f2'}
+                        onMouseOut={(e) => e.currentTarget.style.background = 'white'}
                       >
                         <Trash2 size={18} />
                       </button>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600">{template.questions.length} questions</p>
+                  <p className="text-sm text-gray-500">{template.questions.length} question{template.questions.length !== 1 ? 's' : ''}</p>
                 </div>
               ))}
             </div>
@@ -443,17 +580,17 @@
 
       const EditTemplateView = () => {
         return (
-          <div className="p-6 max-w-4xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <button onClick={() => setView('templates')} className="p-2 hover:bg-gray-100 rounded">
+          <div className="container">
+            <div className="flex-between mb-6">
+              <button onClick={() => setView('templates')} className="btn btn-secondary btn-icon">
                 <ArrowLeft size={24} />
               </button>
-              <h1 className="text-2xl font-bold">Edit Template</h1>
-              <div className="w-20"></div>
+              <h1 style={{fontSize: '28px', fontWeight: '700', color: '#1f2937', margin: 0}}>Edit Template</h1>
+              <div style={{width: '48px'}}></div>
             </div>
 
-            <div className="mb-6">
-              <label className="block text-sm font-medium mb-2">Template Name</label>
+            <div className="card p-6 mb-6">
+              <label className="text-sm font-semibold text-gray-700 mb-3" style={{display: 'block'}}>Template Name</label>
               <input
                 type="text"
                 defaultValue={currentTemplate.name}
@@ -462,13 +599,14 @@
                   updateTemplate(updated);
                   setCurrentTemplate(updated);
                 }}
-                className="w-full p-3 border rounded-lg text-lg"
+                className="input-field"
+                style={{fontSize: '18px', fontWeight: '600'}}
               />
             </div>
 
-            <div className="mb-4">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-semibold">Questions</h2>
+            <div>
+              <div className="flex-between mb-4">
+                <h2 className="text-lg font-bold text-gray-800">Questions</h2>
                 <button
                   onClick={() => {
                     const newQuestion = { id: generateId(), text: '', type: 'text' };
@@ -479,17 +617,19 @@
                     updateTemplate(updated);
                     setCurrentTemplate(updated);
                   }}
-                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                  className="btn btn-primary"
+                  style={{fontSize: '14px', padding: '8px 16px'}}
                 >
+                  <Plus size={18} />
                   Add Question
                 </button>
               </div>
 
               <div className="space-y-3">
                 {currentTemplate.questions.map((question, index) => (
-                  <div key={question.id} className="p-4 bg-white border rounded-lg">
-                    <div className="flex gap-3 items-start">
-                      <span className="text-gray-500 font-medium pt-2">{index + 1}.</span>
+                  <div key={question.id} className="card p-4">
+                    <div className="flex" style={{gap: '12px', alignItems: 'flex-start'}}>
+                      <span className="text-gray-500 font-semibold" style={{paddingTop: '12px', minWidth: '24px'}}>{index + 1}.</span>
                       <input
                         type="text"
                         defaultValue={question.text}
@@ -502,7 +642,8 @@
                           setCurrentTemplate(updated);
                         }}
                         placeholder="Question text"
-                        className="flex-1 p-2 border rounded"
+                        className="input-field"
+                        style={{flex: 1}}
                       />
                       <button
                         onClick={() => {
@@ -513,7 +654,10 @@
                           updateTemplate(updated);
                           setCurrentTemplate(updated);
                         }}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded"
+                        className="btn-icon"
+                        style={{background: 'white', color: '#ef4444', border: '2px solid #fee2e2', borderRadius: '10px', minWidth: '40px'}}
+                        onMouseOver={(e) => e.currentTarget.style.background = '#fef2f2'}
+                        onMouseOut={(e) => e.currentTarget.style.background = 'white'}
                         title="Delete question"
                       >
                         <Trash2 size={18} />
@@ -590,20 +734,16 @@
         };
 
         return (
-          <div className="p-6 max-w-4xl mx-auto pb-32">
+          <div className="container" style={{paddingBottom: '100px'}}>
             <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-sm font-medium text-gray-600">{template.name}</h2>
-                <div className="flex gap-2">
+              <div className="flex-between mb-4">
+                <h2 className="text-sm font-semibold text-gray-500">{template.name}</h2>
+                <div className="flex" style={{gap: '8px'}}>
                   {!currentIntake.saved && (
-                    <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-                      DRAFT
-                    </span>
+                    <span className="badge badge-warning">DRAFT</span>
                   )}
                   {currentIntake.saved && (
-                    <span className="px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                      SAVED
-                    </span>
+                    <span className="badge badge-success">SAVED</span>
                   )}
                 </div>
               </div>
@@ -613,17 +753,18 @@
                 placeholder="Intake name (required)"
                 defaultValue={currentIntake.name}
                 onBlur={(e) => setCurrentIntake({ ...currentIntake, name: e.target.value })}
-                className="w-full p-3 border-2 rounded-lg text-xl font-semibold"
+                className="input-field"
+                style={{fontSize: '20px', fontWeight: '600', padding: '16px'}}
               />
             </div>
 
             <div className="space-y-6 mb-6">
               {template.questions.map((question, index) => (
-                <div key={question.id} className="bg-white p-4 rounded-lg border">
-                  <label className="block text-lg font-medium mb-3">
+                <div key={question.id} className="card p-5">
+                  <label className="text-lg font-semibold text-gray-800 mb-3" style={{display: 'block'}}>
                     {index + 1}. {question.text}
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex" style={{gap: '8px', alignItems: 'flex-start'}}>
                     <textarea
                       ref={el => textareaRefs.current[question.id] = el}
                       defaultValue={currentIntake.responses[question.id] || ''}
@@ -633,8 +774,9 @@
                           responses: { ...currentIntake.responses, [question.id]: e.target.value }
                         });
                       }}
-                      className="flex-1 p-3 border rounded-lg min-h-24"
+                      className="input-field"
                       placeholder="Your response..."
+                      style={{flex: 1, minHeight: '100px'}}
                     />
                     <button
                       type="button"
@@ -646,29 +788,33 @@
                           startVoiceToText(question.id);
                         }
                       }}
-                      className={`p-3 rounded-lg ${
-                        listeningTo === question.id 
-                          ? 'bg-red-600 text-white animate-pulse' 
-                          : 'bg-gray-100 hover:bg-gray-200'
-                      }`}
+                      className="btn-icon"
+                      style={{
+                        background: listeningTo === question.id ? '#ef4444' : 'white',
+                        color: listeningTo === question.id ? 'white' : '#6b7280',
+                        border: listeningTo === question.id ? 'none' : '2px solid #e5e7eb',
+                        minWidth: '48px',
+                        minHeight: '48px',
+                        animation: listeningTo === question.id ? 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite' : 'none'
+                      }}
                       title="Voice to text"
                     >
                       <Mic size={20} />
                     </button>
                   </div>
                   {listeningTo === question.id && (
-                    <p className="text-sm text-red-600 mt-2">Listening...</p>
+                    <p className="text-sm mt-3" style={{color: '#ef4444', fontWeight: '600'}}>🎤 Listening...</p>
                   )}
                 </div>
               ))}
             </div>
 
-            <div className="bg-gray-50 p-6 rounded-lg mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold">Audio Recording</h3>
+            <div className="card p-6 mb-6" style={{background: '#f9fafb'}}>
+              <div className="flex-between mb-4">
+                <h3 className="font-bold text-gray-800">Audio Recording</h3>
                 {isRecording && (
-                  <span className="flex items-center text-red-600 animate-pulse">
-                    <div className="w-3 h-3 bg-red-600 rounded-full mr-2" />
+                  <span className="flex" style={{alignItems: 'center', color: '#ef4444', fontWeight: '600', fontSize: '14px', gap: '8px'}}>
+                    <div style={{width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%', animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'}} />
                     Recording...
                   </span>
                 )}
@@ -677,7 +823,17 @@
               {!isRecording && !currentIntake.audioBlob && (
                 <button
                   onClick={startRecording}
-                  className="w-full py-4 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 text-lg"
+                  className="btn"
+                  style={{
+                    width: '100%',
+                    padding: '20px',
+                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    color: 'white',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 8px rgba(239, 68, 68, 0.2)'
+                  }}
                 >
                   <Mic size={24} />
                   Start Recording
@@ -687,7 +843,16 @@
               {isRecording && (
                 <button
                   onClick={stopRecording}
-                  className="w-full py-4 bg-gray-800 text-white rounded-lg hover:bg-gray-900 flex items-center justify-center gap-2 text-lg"
+                  className="btn"
+                  style={{
+                    width: '100%',
+                    padding: '20px',
+                    background: '#1f2937',
+                    color: 'white',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    justifyContent: 'center'
+                  }}
                 >
                   <Square size={24} />
                   Stop Recording
@@ -695,37 +860,40 @@
               )}
 
               {currentIntake.audioBlob && !isRecording && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between p-3 bg-white rounded border">
-                    <span className="text-green-600 flex items-center gap-2">
-                      <Check size={20} />
-                      Audio recorded
-                    </span>
-                    <button
-                      onClick={() => {
-                        setCurrentIntake({ ...currentIntake, audioBlob: null });
-                        setAudioBlob(null);
-                      }}
-                      className="text-red-600 hover:bg-red-50 p-2 rounded"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
+                <div className="card p-4 flex-between">
+                  <span className="flex" style={{alignItems: 'center', color: '#059669', fontWeight: '600', gap: '8px'}}>
+                    <Check size={20} />
+                    Audio recorded
+                  </span>
+                  <button
+                    onClick={() => {
+                      setCurrentIntake({ ...currentIntake, audioBlob: null });
+                      setAudioBlob(null);
+                    }}
+                    className="btn-icon"
+                    style={{background: 'white', color: '#ef4444', border: '2px solid #fee2e2'}}
+                    onMouseOver={(e) => e.currentTarget.style.background = '#fef2f2'}
+                    onMouseOut={(e) => e.currentTarget.style.background = 'white'}
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </div>
               )}
             </div>
 
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex gap-3">
+            <div className="fixed-bottom flex" style={{gap: '12px'}}>
               <button
                 onClick={discardIntake}
-                className="flex-1 py-3 border-2 border-red-600 text-red-600 rounded-lg hover:bg-red-50 flex items-center justify-center gap-2"
+                className="btn btn-danger"
+                style={{flex: 1, justifyContent: 'center', padding: '16px'}}
               >
                 <X size={20} />
                 Discard
               </button>
               <button
                 onClick={saveIntake}
-                className="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
+                className="btn btn-success"
+                style={{flex: 1, justifyContent: 'center', padding: '16px'}}
               >
                 <Save size={20} />
                 Save
