@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#3B82F6">
+  <title>Field Intake App</title>
+  
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+    
+    // Lucide icons as inline SVG
+    const Plus = ({size = 24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+    const Trash2 = ({size = 24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>;
+    const Download = ({size = 24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>;
+    const Mic = ({size = 24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>;
+    const Square = ({size = 24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>;
+    const Settings = ({size = 24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 6v6m8.66-10.5l-5.2 3M8.54 14l-5.2 3M23 12h-6m-6 0H5m15.66 4.5l-5.2-3M8.54 10l-5.2-3"/></svg>;
+    const ArrowLeft = ({size = 24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>;
+    const Check = ({size = 24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>;
+    const X = ({size = 24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+    const Save = ({size = 24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>;
+    const Edit2 = ({size = 24}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>;
+
+    const generateId = () => '_' + Math.random().toString(36).substr(2, 9);
+
+    function FieldIntakeApp() {
+      const [view, setView] = useState('home');
+      const [templates, setTemplates] = useState([]);
+      const [intakes, setIntakes] = useState([]);
+      const [currentTemplate, setCurrentTemplate] = useState(null);
+      const [currentIntake, setCurrentIntake] = useState(null);
+      const [isRecording, setIsRecording] = useState(false);
+      const [audioBlob, setAudioBlob] = useState(null);
+      
+      const mediaRecorderRef = useRef(null);
+      const audioChunksRef = useRef([]);
+
+      useEffect(() => {
+        const savedTemplates = localStorage.getItem('templates');
+        const savedIntakes = localStorage.getItem('intakes');
+        const savedDraft = localStorage.getItem('currentDraft');
+        
+        if (savedTemplates) setTemplates(JSON.parse(savedTemplates));
+        if (savedIntakes) setIntakes(JSON.parse(savedIntakes));
+        if (savedDraft) setCurrentIntake(JSON.parse(savedDraft));
+      }, []);
+
+      useEffect(() => {
+        if (currentIntake && !currentIntake.saved) {
+          localStorage.setItem('currentDraft', JSON.stringify(currentIntake));
+        }
+      }, [currentIntake]);
+
+      useEffect(() => {
+        localStorage.setItem('templates', JSON.stringify(templates));
+      }, [templates]);
+
+      useEffect(() => {
+        localStorage.setItem('intakes', JSON.stringify(intakes));
+      }, [intakes]);
+
+      const startRecording = async () => {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorderRef.current = new MediaRecorder(stream);
+          audioChunksRef.current = [];
+
+          mediaRecorderRef.current.ondataavailable = (event) => {
+            audioChunksRef.current.push(event.data);
+          };
+
+          mediaRecorderRef.current.onstop = () => {
+            const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+            setAudioBlob(audioBlob);
+            if (currentIntake) {
+              setCurrentIntake({ ...currentIntake, audioBlob: audioBlob });
+            }
+          };
+
+          mediaRecorderRef.current.start();
+          setIsRecording(true);
+        } catch (err) {
+          alert('Microphone access denied');
+        }
+      };
+
+      const stopRecording = () => {
+        if (mediaRecorderRef.current && isRecording) {
+          mediaRecorderRef.current.stop();
+          mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+          setIsRecording(false);
+        }
+      };
+
+      const createTemplate = () => {
+        const newTemplate = {
+          id: generateId(),
+          name: 'New Template',
+          questions: [{ id: generateId(), text: 'Question 1', type: 'text' }]
+        };
+        setTemplates([...templates, newTemplate]);
+        setCurrentTemplate(newTemplate);
+        setView('editTemplate');
+      };
+
+      const updateTemplate = (updatedTemplate) => {
+        setTemplates(templates.map(t => t.id === updatedTemplate.id ? updatedTemplate : t));
+        setCurrentTemplate(updatedTemplate);
+      };
+
+      const deleteTemplate = (id) => {
+        setTemplates(templates.filter(t => t.id !== id));
+      };
+
+      const startIntake = (template) => {
+        const newIntake = {
+          id: generateId(),
+          templateId: template.id,
+          templateName: template.name,
+          name: '',
+          responses: {},
+          audioBlob: null,
+          saved: false,
+          createdAt: new Date().toISOString()
+        };
+        setCurrentIntake(newIntake);
+        setView('intake');
+      };
+
+      const saveIntake = () => {
+        if (!currentIntake.name.trim()) {
+          alert('Please give this intake a name');
+          return;
+        }
+        
+        const savedIntake = { ...currentIntake, saved: true, savedAt: new Date().toISOString() };
+        
+        if (intakes.find(i => i.id === savedIntake.id)) {
+          setIntakes(intakes.map(i => i.id === savedIntake.id ? savedIntake : i));
+        } else {
+          setIntakes([...intakes, savedIntake]);
+        }
+        
+        localStorage.removeItem('currentDraft');
+        setCurrentIntake(null);
+        setView('home');
+      };
+
+      const discardIntake = () => {
+        localStorage.removeItem('currentDraft');
+        setCurrentIntake(null);
+        setAudioBlob(null);
+        setView('home');
+      };
+
+      const deleteIntake = (id) => {
+        setIntakes(intakes.filter(i => i.id !== id));
+      };
+
+      const exportToCSV = () => {
+        if (intakes.length === 0) {
+          alert('No intakes to export');
+          return;
+        }
+
+        const allQuestions = new Set();
+        intakes.forEach(intake => {
+          const template = templates.find(t => t.id === intake.templateId);
+          if (template) {
+            template.questions.forEach(q => allQuestions.add(q.text));
+          }
+        });
+
+        const headers = ['Intake Name', 'Template', 'Created At', 'Has Audio', ...Array.from(allQuestions)];
+        const rows = intakes.map(intake => {
+          const template = templates.find(t => t.id === intake.templateId);
+          const row = [
+            intake.name,
+            intake.templateName,
+            new Date(intake.createdAt).toLocaleString(),
+            intake.audioBlob ? 'Yes' : 'No'
+          ];
+          
+          allQuestions.forEach(q => {
+            const question = template?.questions.find(tq => tq.text === q);
+            row.push(question ? (intake.responses[question.id] || '') : '');
+          });
+          
+          return row;
+        });
+
+        const csv = [headers, ...rows].map(row => 
+          row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+        ).join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `intakes-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      };
+
+      const HomeView = () => (
+        <div className="p-6 max-w-4xl mx-auto">
+          <h1 className="text-3xl font-bold mb-8">Field Intake</h1>
+          
+          {currentIntake && !currentIntake.saved && (
+            <div className="bg-yellow-50 border-2 border-yellow-400 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-semibold text-yellow-900">Draft in Progress</p>
+                  <p className="text-sm text-yellow-700">"{currentIntake.name || 'Unnamed'}"</p>
+                </div>
+                <button 
+                  onClick={() => setView('intake')}
+                  className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600"
+                >
+                  Resume
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="grid gap-4 mb-8">
+            <button
+              onClick={() => {
+                if (templates.length === 0) {
+                  alert('Create a template first!');
+                  setView('templates');
+                } else {
+                  startIntake(templates[0]);
+                }
+              }}
+              className="p-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-between text-lg font-semibold"
+            >
+              <span>Quick Start New Intake</span>
+              <Plus size={24} />
+            </button>
+
+            <button
+              onClick={() => setView('templates')}
+              className="p-4 bg-gray-100 rounded-lg hover:bg-gray-200 flex items-center justify-between"
+            >
+              <span className="font-medium">Manage Templates</span>
+              <Settings size={20} />
+            </button>
+
+            <button
+              onClick={exportToCSV}
+              className="p-4 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-between"
+            >
+              <span className="font-medium">Export All Intakes to CSV</span>
+              <Download size={20} />
+            </button>
+          </div>
+
+          <div>
+            <h2 className="text-xl font-bold mb-4">Saved Intakes ({intakes.length})</h2>
+            {intakes.length === 0 ? (
+              <p className="text-gray-500 text-center py-8">No saved intakes yet</p>
+            ) : (
+              <div className="space-y-2">
+                {intakes.map(intake => (
+                  <div key={intake.id} className="p-4 bg-white border rounded-lg flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="font-semibold">{intake.name}</p>
+                      <p className="text-sm text-gray-600">{intake.templateName}</p>
+                      <p className="text-xs text-gray-400">
+                        {new Date(intake.createdAt).toLocaleString()}
+                        {intake.audioBlob && ' • Has audio'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => deleteIntake(intake.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+
+      const TemplatesView = () => (
+        <div className="p-6 max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
+            <button onClick={() => setView('home')} className="p-2 hover:bg-gray-100 rounded">
+              <ArrowLeft size={24} />
+            </button>
+            <h1 className="text-2xl font-bold">Templates</h1>
+            <button
+              onClick={createTemplate}
+              className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              <Plus size={20} />
+            </button>
+          </div>
+
+          {templates.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-500 mb-4">No templates yet</p>
+              <button
+                onClick={createTemplate}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Create First Template
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {templates.map(template => (
+                <div key={template.id} className="p-4 bg-white border rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-semibold text-lg">{template.name}</h3>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => startIntake(template)}
+                        className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                      >
+                        Use
+                      </button>
+                      <button
+                        onClick={() => {
+                          setCurrentTemplate(template);
+                          setView('editTemplate');
+                        }}
+                        className="p-2 hover:bg-gray-100 rounded"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button
+                        onClick={() => deleteTemplate(template.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600">{template.questions.length} questions</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+
+      const EditTemplateView = () => {
+        return (
+          <div className="p-6 max-w-4xl mx-auto">
+            <div className="flex items-center justify-between mb-6">
+              <button onClick={() => setView('templates')} className="p-2 hover:bg-gray-100 rounded">
+                <ArrowLeft size={24} />
+              </button>
+              <h1 className="text-2xl font-bold">Edit Template</h1>
+              <div className="w-20"></div>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium mb-2">Template Name</label>
+              <input
+                type="text"
+                defaultValue={currentTemplate.name}
+                onBlur={(e) => {
+                  const updated = { ...currentTemplate, name: e.target.value };
+                  updateTemplate(updated);
+                  setCurrentTemplate(updated);
+                }}
+                className="w-full p-3 border rounded-lg text-lg"
+              />
+            </div>
+
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-lg font-semibold">Questions</h2>
+                <button
+                  onClick={() => {
+                    const newQuestion = { id: generateId(), text: '', type: 'text' };
+                    const updated = {
+                      ...currentTemplate,
+                      questions: [...currentTemplate.questions, newQuestion]
+                    };
+                    updateTemplate(updated);
+                    setCurrentTemplate(updated);
+                  }}
+                  className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                >
+                  Add Question
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {currentTemplate.questions.map((question, index) => (
+                  <div key={question.id} className="p-4 bg-white border rounded-lg">
+                    <div className="flex gap-3 items-start">
+                      <span className="text-gray-500 font-medium pt-2">{index + 1}.</span>
+                      <input
+                        type="text"
+                        defaultValue={question.text}
+                        onBlur={(e) => {
+                          const updatedQuestions = currentTemplate.questions.map((q, i) =>
+                            i === index ? { ...q, text: e.target.value } : q
+                          );
+                          const updated = { ...currentTemplate, questions: updatedQuestions };
+                          updateTemplate(updated);
+                          setCurrentTemplate(updated);
+                        }}
+                        placeholder="Question text"
+                        className="flex-1 p-2 border rounded"
+                      />
+                      <button
+                        onClick={() => {
+                          const updated = {
+                            ...currentTemplate,
+                            questions: currentTemplate.questions.filter((_, i) => i !== index)
+                          };
+                          updateTemplate(updated);
+                          setCurrentTemplate(updated);
+                        }}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded"
+                        title="Delete question"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      };
+
+      const IntakeView = () => {
+        const template = templates.find(t => t.id === currentIntake.templateId);
+        const [listeningTo, setListeningTo] = useState(null);
+        const recognitionRef = useRef(null);
+        const textareaRefs = useRef({});
+
+        if (!template) return <div>Template not found</div>;
+
+        const startVoiceToText = (questionId) => {
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          
+          if (!SpeechRecognition) {
+            alert('Speech recognition not supported in this browser');
+            return;
+          }
+
+          const recognition = new SpeechRecognition();
+          recognition.continuous = true;
+          recognition.interimResults = true;
+
+          recognition.onstart = () => {
+            setListeningTo(questionId);
+          };
+
+          recognition.onresult = (event) => {
+            let transcript = '';
+            for (let i = 0; i < event.results.length; i++) {
+              transcript += event.results[i][0].transcript;
+            }
+            
+            if (textareaRefs.current[questionId]) {
+              textareaRefs.current[questionId].value = transcript;
+            }
+            
+            setCurrentIntake({
+              ...currentIntake,
+              responses: { 
+                ...currentIntake.responses, 
+                [questionId]: transcript 
+              }
+            });
+          };
+
+          recognition.onerror = () => {
+            setListeningTo(null);
+          };
+
+          recognition.onend = () => {
+            setListeningTo(null);
+          };
+
+          recognitionRef.current = recognition;
+          recognition.start();
+        };
+
+        const stopVoiceToText = () => {
+          if (recognitionRef.current) {
+            recognitionRef.current.stop();
+            setListeningTo(null);
+          }
+        };
+
+        return (
+          <div className="p-6 max-w-4xl mx-auto pb-32">
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-sm font-medium text-gray-600">{template.name}</h2>
+                <div className="flex gap-2">
+                  {!currentIntake.saved && (
+                    <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+                      DRAFT
+                    </span>
+                  )}
+                  {currentIntake.saved && (
+                    <span className="px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                      SAVED
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <input
+                type="text"
+                placeholder="Intake name (required)"
+                defaultValue={currentIntake.name}
+                onBlur={(e) => setCurrentIntake({ ...currentIntake, name: e.target.value })}
+                className="w-full p-3 border-2 rounded-lg text-xl font-semibold"
+              />
+            </div>
+
+            <div className="space-y-6 mb-6">
+              {template.questions.map((question, index) => (
+                <div key={question.id} className="bg-white p-4 rounded-lg border">
+                  <label className="block text-lg font-medium mb-3">
+                    {index + 1}. {question.text}
+                  </label>
+                  <div className="flex gap-2">
+                    <textarea
+                      ref={el => textareaRefs.current[question.id] = el}
+                      defaultValue={currentIntake.responses[question.id] || ''}
+                      onBlur={(e) => {
+                        setCurrentIntake({
+                          ...currentIntake,
+                          responses: { ...currentIntake.responses, [question.id]: e.target.value }
+                        });
+                      }}
+                      className="flex-1 p-3 border rounded-lg min-h-24"
+                      placeholder="Your response..."
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (listeningTo === question.id) {
+                          stopVoiceToText();
+                        } else {
+                          startVoiceToText(question.id);
+                        }
+                      }}
+                      className={`p-3 rounded-lg ${
+                        listeningTo === question.id 
+                          ? 'bg-red-600 text-white animate-pulse' 
+                          : 'bg-gray-100 hover:bg-gray-200'
+                      }`}
+                      title="Voice to text"
+                    >
+                      <Mic size={20} />
+                    </button>
+                  </div>
+                  {listeningTo === question.id && (
+                    <p className="text-sm text-red-600 mt-2">Listening...</p>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-gray-50 p-6 rounded-lg mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">Audio Recording</h3>
+                {isRecording && (
+                  <span className="flex items-center text-red-600 animate-pulse">
+                    <div className="w-3 h-3 bg-red-600 rounded-full mr-2" />
+                    Recording...
+                  </span>
+                )}
+              </div>
+              
+              {!isRecording && !currentIntake.audioBlob && (
+                <button
+                  onClick={startRecording}
+                  className="w-full py-4 bg-red-600 text-white rounded-lg hover:bg-red-700 flex items-center justify-center gap-2 text-lg"
+                >
+                  <Mic size={24} />
+                  Start Recording
+                </button>
+              )}
+
+              {isRecording && (
+                <button
+                  onClick={stopRecording}
+                  className="w-full py-4 bg-gray-800 text-white rounded-lg hover:bg-gray-900 flex items-center justify-center gap-2 text-lg"
+                >
+                  <Square size={24} />
+                  Stop Recording
+                </button>
+              )}
+
+              {currentIntake.audioBlob && !isRecording && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-white rounded border">
+                    <span className="text-green-600 flex items-center gap-2">
+                      <Check size={20} />
+                      Audio recorded
+                    </span>
+                    <button
+                      onClick={() => {
+                        setCurrentIntake({ ...currentIntake, audioBlob: null });
+                        setAudioBlob(null);
+                      }}
+                      className="text-red-600 hover:bg-red-50 p-2 rounded"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4 flex gap-3">
+              <button
+                onClick={discardIntake}
+                className="flex-1 py-3 border-2 border-red-600 text-red-600 rounded-lg hover:bg-red-50 flex items-center justify-center gap-2"
+              >
+                <X size={20} />
+                Discard
+              </button>
+              <button
+                onClick={saveIntake}
+                className="flex-1 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
+              >
+                <Save size={20} />
+                Save
+              </button>
+            </div>
+          </div>
+        );
+      };
+
+      return (
+        <div className="min-h-screen bg-gray-50">
+          {view === 'home' && <HomeView />}
+          {view === 'templates' && <TemplatesView />}
+          {view === 'editTemplate' && currentTemplate && <EditTemplateView />}
+          {view === 'intake' && currentIntake && <IntakeView />}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<FieldIntakeApp />, document.getElementById('root'));
+  </script>
+</body>
+</html>
