@@ -428,6 +428,16 @@
         setView('home');
       };
 
+      const deleteIntake = (id) => {
+        const intake = intakes.find(i => i.id === id);
+        if (!intake) return;
+        
+        const confirmed = window.confirm(`Delete "${intake.name}"? This cannot be undone.`);
+        if (confirmed) {
+          setIntakes(intakes.filter(i => i.id !== id));
+        }
+      };
+
       const transcribeAudio = async (intake) => {
         if (!intake.audioBlob) return;
         
@@ -511,7 +521,7 @@
         <div className="container">
           <div className="header">
             <h1>Field Intake</h1>
-            <p>Capture data on the go</p>
+            <p>Capture data beautifully, even offline</p>
           </div>
           
           {currentIntake && !currentIntake.saved && (
